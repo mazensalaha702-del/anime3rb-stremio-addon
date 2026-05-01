@@ -262,6 +262,32 @@ def fetch_player_src_cdp(page_url: str) -> Optional[str]:
                             return val
                         break
                 time.sleep(0.5)
+            try:
+                ws.send(
+                    json.dumps(
+                        {
+                            "id": 999,
+                            "method": "Runtime.evaluate",
+                            "params": {
+                                "expression": "(()=>{const html=document.documentElement.outerHTML||''; const text=(document.body&&document.body.innerText||'').replace(/\\s+/g,' ').slice(0,180); return {title:document.title, href:location.href, len:html.length, hasVid3rb:html.includes('vid3rb'), hasIframe:!!document.querySelector('iframe'), hasCloudflare:/cloudflare|cf-|turnstile/i.test(html), text};})()",
+                                "returnByValue": True,
+                            },
+                        }
+                    )
+                )
+                deadline = time.time() + 1.5
+                while time.time() < deadline:
+                    try:
+                        raw = ws.recv()
+                    except websocket.WebSocketTimeoutException:
+                        break
+                    msg = json.loads(raw)
+                    if msg.get("id") == 999:
+                        diag = msg.get("result", {}).get("result", {}).get("value") or {}
+                        print(f"[CDP] no iframe diag={diag}", flush=True)
+                        break
+            except Exception as e:
+                print(f"[CDP] no iframe diag failed: {e}", flush=True)
             return None
         finally:
             ws.close()
