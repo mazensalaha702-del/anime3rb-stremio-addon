@@ -1,0 +1,7 @@
+flask
+nodriver
+beautifulsoup4
+requests
+websocket-client
+browser-cookie3
+gunicorn

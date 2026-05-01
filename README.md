@@ -1,12 +1,13 @@
 ---
-title: Anime3rb Cdp Addon
-emoji: 😻
-colorFrom: blue
-colorTo: green
+title: Anime3rb CDP Addon
+emoji: 🎬
+colorFrom: gray
+colorTo: blue
 sdk: docker
+app_port: 8080
 pinned: false
 license: mit
-short_description: addon
+short_description: Anime3rb Stremio addon with direct stream links
 ---
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+Anime3rb Stremio addon running as a Docker Space.
