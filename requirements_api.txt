@@ -1,7 +1,5 @@
 flask
 nodriver
+curl_cffi
 beautifulsoup4
 requests
-websocket-client
-browser-cookie3
-gunicorn

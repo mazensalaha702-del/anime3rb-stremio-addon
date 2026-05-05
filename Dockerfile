@@ -2,8 +2,8 @@ FROM python:3.12-slim-bookworm
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PORT=8080 \
-    STREAM_MODE=direct \
+    PORT=7860 \
+    HOST=0.0.0.0 \
     CHROME_PATH=/usr/bin/chromium
 
 WORKDIR /app
@@ -13,11 +13,14 @@ RUN apt-get update \
         ca-certificates \
         chromium \
         fonts-liberation \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements_api.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY anime3rb_cdp_addon.py ./
+COPY anime3rb_pro_addon.py ./app.py
 
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --workers ${GUNICORN_WORKERS:-1} --threads ${GUNICORN_THREADS:-4} --timeout ${GUNICORN_TIMEOUT:-180} anime3rb_cdp_addon:app"]
+EXPOSE 7860
+
+CMD ["python", "app.py"]
