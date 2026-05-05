@@ -83,33 +83,47 @@ async def _fetch_cf_cookies_async() -> Dict[str, str]:
                 "--window-position=-2000,0",
                 "--no-sandbox",
                 "--mute-audio",
-                "--disable-gpu",
                 "--disable-dev-shm-usage",
+                "--use-gl=swiftshader",        # Software GPU (needed for CF JS challenge)
+                "--disable-software-rasterizer",
+                "--ignore-gpu-blocklist",
             ]
         )
         page = await browser.get(BASE_URL)
-        
-        # Wait for Cloudflare to be solved (max 30s)
-        deadline = time.time() + 30
+
+        # Wait for Cloudflare to be solved (max 60s)
+        deadline = time.time() + 60
+        solved = False
         while time.time() < deadline:
             try:
                 title = await page.evaluate("document.title")
-                if title and "Just a moment" not in title and "Attention" not in title:
-                    log.info(f"✅ Cloudflare solved! Page title: {title[:40]}")
+                log.info(f"[CF] Page title: '{title}'")
+                if title and "Just a moment" not in title and "Attention" not in title and title.strip():
+                    log.info(f"✅ Cloudflare solved! Title: '{title[:50]}'")
+                    solved = True
                     break
-            except Exception:
-                pass
-            await asyncio.sleep(0.5)
-        
-        # Extract cookies
-        raw_cookies = await browser.cookies.get_all()
-        cookies = {}
-        for c in raw_cookies:
-            if hasattr(c, 'name') and hasattr(c, 'value'):
-                cookies[c.name] = c.value
-            elif isinstance(c, dict):
-                cookies[c.get('name', '')] = c.get('value', '')
-        
+            except Exception as e:
+                log.debug(f"[CF] Title check: {e}")
+            await asyncio.sleep(1)
+
+        if not solved:
+            log.warning("⚠️ Cloudflare challenge not solved in 60s, extracting whatever cookies exist...")
+
+        # Extract cookies via CDP (more reliable)
+        try:
+            import nodriver.cdp.network as cdp_network
+            raw = await page.send(cdp_network.get_all_cookies())
+            cookies = {c.name: c.value for c in raw}
+        except Exception:
+            # Fallback to browser.cookies
+            raw_cookies = await browser.cookies.get_all()
+            cookies = {}
+            for c in raw_cookies:
+                if hasattr(c, 'name') and hasattr(c, 'value'):
+                    cookies[c.name] = c.value
+                elif isinstance(c, dict):
+                    cookies[c.get('name', '')] = c.get('value', '')
+
         log.info(f"✅ Extracted {len(cookies)} cookies: {list(cookies.keys())}")
         return cookies
     except Exception as e:
@@ -121,6 +135,7 @@ async def _fetch_cf_cookies_async() -> Dict[str, str]:
                 browser.stop()
             except Exception:
                 pass
+
 
 
 def refresh_cf_cookies():
