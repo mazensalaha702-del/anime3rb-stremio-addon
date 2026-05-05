@@ -78,11 +78,13 @@ async def _fetch_cf_cookies_async() -> Dict[str, str]:
     try:
         browser = await uc.start(
             headless=False,
+            no_sandbox=True,
             browser_args=[
                 "--window-position=-2000,0",
                 "--no-sandbox",
                 "--mute-audio",
                 "--disable-gpu",
+                "--disable-dev-shm-usage",
             ]
         )
         page = await browser.get(BASE_URL)
