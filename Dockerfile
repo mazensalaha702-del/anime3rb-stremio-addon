@@ -26,4 +26,4 @@ COPY anime3rb_cdp_addon.py ./
 EXPOSE 7860
 
 # Start virtual display then run with python directly
-CMD ["sh", "-c", "Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX +render -noreset & sleep 2 && python anime3rb_cdp_addon.py"]
+CMD ["sh", "-c", "rm -f /tmp/.X99-lock && Xvfb :99 -screen 0 1280x720x24 -ac +extension GLX +render -noreset & sleep 2 && python anime3rb_cdp_addon.py"]
